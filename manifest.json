@@ -2,7 +2,7 @@
   "name": "Parcel Delivery Tracker",
   "short_name": "ParcelTracker",
   "description": "Track your parcels with real-time notifications",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
