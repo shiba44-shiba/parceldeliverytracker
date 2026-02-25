@@ -149,6 +149,10 @@ def create_tracking(api_key: str, courier_code: str, tracking_number: str) -> di
     return api_request("/trackings", api_key, method="POST", payload=payload)
 
 
+def fetch_tracking_by_id(api_key: str, tracking_id: str) -> dict[str, Any]:
+    return api_request(f"/trackings/{tracking_id}", api_key)
+
+
 def process_tracking_request(api_key: str, tracking_number: str, courier_input: str) -> dict[str, Any]:
     valid_couriers = fetch_valid_couriers(api_key)
     courier_code, suggestions = normalize_courier_code(courier_input, valid_couriers)
@@ -166,12 +170,22 @@ def process_tracking_request(api_key: str, tracking_number: str, courier_input: 
         meta = details.get("meta", {}) if isinstance(details, dict) else {}
         data = details.get("data", {}) if isinstance(details, dict) else {}
         if meta.get("code") == 4003 and data:
+            detailed_tracking = data
+            tracking_id = data.get("id")
+            if tracking_id:
+                try:
+                    lookup = fetch_tracking_by_id(api_key, tracking_id)
+                    lookup_data = lookup.get("data", {}) if isinstance(lookup, dict) else {}
+                    detailed_tracking = lookup_data.get("tracking", lookup_data)
+                except RuntimeError:
+                    detailed_tracking = data
+
             return {
                 "ok": True,
-                "courier_code": data.get("slug", courier_code),
-                "tracking_number": data.get("tracking_number", tracking_number),
-                "tag": data.get("tag", "Existing"),
-                "raw": data,
+                "courier_code": detailed_tracking.get("slug", data.get("slug", courier_code)),
+                "tracking_number": detailed_tracking.get("tracking_number", data.get("tracking_number", tracking_number)),
+                "tag": detailed_tracking.get("tag", data.get("tag", "Existing")),
+                "raw": detailed_tracking,
             }
         raise
 
