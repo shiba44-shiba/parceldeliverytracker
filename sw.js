@@ -7,14 +7,14 @@
 
 const CACHE_NAME = 'parcel-tracker-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/tracker.js',
-  '/js/notifications.js',
-  '/js/email.js',
-  '/js/app.js',
-  '/manifest.json',
+  './',
+  './index.html',
+  './css/styles.css',
+  './js/tracker.js',
+  './js/notifications.js',
+  './js/email.js',
+  './js/app.js',
+  './manifest.json',
 ];
 
 // Install – pre-cache app shell
