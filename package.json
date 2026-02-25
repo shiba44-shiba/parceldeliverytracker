@@ -1,0 +1,17 @@
+{
+  "name": "parcel-delivery-tracker",
+  "version": "1.0.0",
+  "description": "A lightweight browser-based parcel tracking app with Chrome notifications and email alerts",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "test": "echo \"No test suite configured\" && exit 0"
+  },
+  "keywords": [
+    "parcel",
+    "tracking",
+    "delivery",
+    "notifications"
+  ],
+  "license": "MIT"
+}
