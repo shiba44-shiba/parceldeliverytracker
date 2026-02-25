@@ -19,6 +19,7 @@ const ASSETS = [
 
 // Install – pre-cache app shell
 self.addEventListener('install', (event) => {
+  console.log('[ServiceWorker] Installing – caching app shell…');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
@@ -27,6 +28,7 @@ self.addEventListener('install', (event) => {
 
 // Activate – clean old caches
 self.addEventListener('activate', (event) => {
+  console.log('[ServiceWorker] Activating – cleaning old caches…');
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
@@ -47,6 +49,9 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => {
+        console.log('[ServiceWorker] Network unavailable – serving from cache:', event.request.url);
+        return caches.match(event.request);
+      })
   );
 });

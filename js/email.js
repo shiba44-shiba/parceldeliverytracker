@@ -14,6 +14,7 @@
 const Email = (() => {
   'use strict';
 
+  const LOG_PREFIX = '[Email]';
   let _enabled = true;
   let _recipientEmail = '';
 
@@ -52,7 +53,13 @@ const Email = (() => {
    * @param {string} latestMessage
    */
   function sendUpdate(trackingNumber, statusText, latestMessage) {
-    if (!_enabled || !_recipientEmail) return;
+    if (!_enabled || !_recipientEmail) {
+      if (!_enabled) console.log(`${LOG_PREFIX} Email notifications disabled – skipping`);
+      if (!_recipientEmail && _enabled) console.log(`${LOG_PREFIX} No recipient email set – skipping`);
+      return;
+    }
+
+    console.log(`${LOG_PREFIX} Sending email update for: %s → %s`, trackingNumber, _recipientEmail);
 
     const subject = encodeURIComponent(`Parcel Update: ${trackingNumber} – ${statusText}`);
     const body = encodeURIComponent(
