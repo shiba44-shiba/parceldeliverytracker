@@ -15,6 +15,7 @@
 const Tracker = (() => {
   'use strict';
 
+  const LOG_PREFIX = '[Tracker]';
   const API_BASE = 'https://api.trackingmore.com/v4';
   let _apiKey = '';
   let _abortController = null;
@@ -25,6 +26,7 @@ const Tracker = (() => {
    */
   function setApiKey(key) {
     _apiKey = (key || '').trim();
+    console.log(`${LOG_PREFIX} API key %s`, _apiKey ? 'configured' : 'cleared (demo mode)');
   }
 
   /**
@@ -53,9 +55,11 @@ const Tracker = (() => {
    */
   async function createTracking(trackingNumber, carrier) {
     if (!_apiKey) {
+      console.log(`${LOG_PREFIX} No API key – using demo data for: %s`, trackingNumber);
       return _mockCreate(trackingNumber, carrier);
     }
 
+    console.log(`${LOG_PREFIX} Creating tracking via API: %s (carrier: %s)`, trackingNumber, carrier);
     cancelPending();
     _abortController = new AbortController();
 
@@ -77,9 +81,11 @@ const Tracker = (() => {
     const json = await res.json();
 
     if (json.meta && json.meta.code !== 200 && json.meta.code !== 4016) {
+      console.error(`${LOG_PREFIX} API error (create):`, json.meta.message);
       throw new Error(json.meta.message || 'API error');
     }
 
+    console.log(`${LOG_PREFIX} Tracking created successfully: %s`, trackingNumber);
     return _normalise(json.data || {}, trackingNumber, carrier);
   }
 
@@ -91,9 +97,11 @@ const Tracker = (() => {
    */
   async function getTracking(trackingNumber, carrier) {
     if (!_apiKey) {
+      console.log(`${LOG_PREFIX} No API key – returning demo data for: %s`, trackingNumber);
       return _mockGet(trackingNumber, carrier);
     }
 
+    console.log(`${LOG_PREFIX} Fetching tracking via API: %s`, trackingNumber);
     cancelPending();
     _abortController = new AbortController();
 
@@ -115,11 +123,13 @@ const Tracker = (() => {
     const json = await res.json();
 
     if (json.meta && json.meta.code !== 200) {
+      console.error(`${LOG_PREFIX} API error (get):`, json.meta.message);
       throw new Error(json.meta.message || 'API error');
     }
 
     // The API may return an array; use the first match.
     const data = Array.isArray(json.data) ? json.data[0] : json.data;
+    console.log(`${LOG_PREFIX} Tracking data received for: %s`, trackingNumber);
     return _normalise(data || {}, trackingNumber, carrier);
   }
 

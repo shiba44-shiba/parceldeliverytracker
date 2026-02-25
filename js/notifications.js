@@ -12,6 +12,7 @@
 const Notifications = (() => {
   'use strict';
 
+  const LOG_PREFIX = '[Notifications]';
   let _enabled = true;
 
   /**
@@ -27,11 +28,17 @@ const Notifications = (() => {
    * @returns {Promise<string>} 'granted' | 'denied' | 'default'
    */
   async function requestPermission() {
-    if (!isSupported()) return 'denied';
+    if (!isSupported()) {
+      console.warn(`${LOG_PREFIX} Notifications not supported in this browser`);
+      return 'denied';
+    }
     if (Notification.permission === 'granted') return 'granted';
-    return Notification.permission !== 'denied'
+    console.log(`${LOG_PREFIX} Requesting notification permission…`);
+    const result = Notification.permission !== 'denied'
       ? await Notification.requestPermission()
       : 'denied';
+    console.log(`${LOG_PREFIX} Permission result: %s`, result);
+    return result;
   }
 
   /**
@@ -57,11 +64,15 @@ const Notifications = (() => {
    */
   function notify(trackingNumber, statusText, latestMessage) {
     if (!_enabled || !isSupported()) return;
-    if (Notification.permission !== 'granted') return;
+    if (Notification.permission !== 'granted') {
+      console.warn(`${LOG_PREFIX} Cannot show notification – permission not granted`);
+      return;
+    }
 
     const title = `📦 ${trackingNumber}`;
     const body = `${statusText}: ${latestMessage || 'Status updated'}`;
 
+    console.log(`${LOG_PREFIX} Showing notification: %s – %s`, title, body);
     try {
       new Notification(title, {
         body,
@@ -69,8 +80,8 @@ const Notifications = (() => {
         tag: `parcel-${trackingNumber}`,
         renotify: true,
       });
-    } catch (_) {
-      // Notification constructor may throw in insecure contexts; ignore.
+    } catch (err) {
+      console.warn(`${LOG_PREFIX} Notification failed (insecure context?):`, err.message);
     }
   }
 

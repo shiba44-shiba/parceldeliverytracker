@@ -2,7 +2,9 @@
 
 A lightweight, browser-based parcel tracking web application that monitors your shipments and notifies you instantly when there is a status update — via **Chrome desktop notifications** and **email alerts**.
 
-> **No installation required.** Open `index.html` in Chrome (or any modern browser) and start tracking.
+🌐 **Live Website:** [https://shiba44-shiba.github.io/parceldeliverytracker/](https://shiba44-shiba.github.io/parceldeliverytracker/)
+
+> **No installation required.** Visit the live site above or open `index.html` in Chrome (or any modern browser) and start tracking.
 
 ---
 
@@ -21,13 +23,14 @@ A lightweight, browser-based parcel tracking web application that monitors your 
    - [Connecting a Real Tracking API](#7-connecting-a-real-tracking-api)
 5. [Supported Carriers](#supported-carriers)
 6. [API Integration](#api-integration)
-7. [Performance & Optimisation](#performance--optimisation)
-8. [Project Structure](#project-structure)
-9. [Deploying to the Web](#deploying-to-the-web)
-10. [Frequently Asked Questions](#frequently-asked-questions)
-11. [Troubleshooting](#troubleshooting)
-12. [Contributing](#contributing)
-13. [License](#license)
+7. [Console Logging & Debugging](#console-logging--debugging)
+8. [Performance & Optimisation](#performance--optimisation)
+9. [Project Structure](#project-structure)
+10. [Deploying to the Web](#deploying-to-the-web)
+11. [Frequently Asked Questions](#frequently-asked-questions)
+12. [Troubleshooting](#troubleshooting)
+13. [Contributing](#contributing)
+14. [License](#license)
 
 ---
 
@@ -46,12 +49,17 @@ A lightweight, browser-based parcel tracking web application that monitors your 
 | **CPU/GPU optimised** | Animations use GPU-composited properties (`transform`, `opacity`); DOM updates are batched via `requestAnimationFrame`. |
 | **Simple UI** | Clean, responsive design that works on desktop and mobile Chrome. |
 | **Zero dependencies** | Pure HTML, CSS and vanilla JavaScript — no frameworks, no build step. |
+| **Developer-friendly logging** | Comprehensive console output with prefixed log levels for easy debugging via browser DevTools. |
 
 ---
 
 ## Quick Start
 
-### Option A – Open the file directly
+### Option A – Use the live website (easiest)
+
+Visit **[https://shiba44-shiba.github.io/parceldeliverytracker/](https://shiba44-shiba.github.io/parceldeliverytracker/)** — no downloads or setup needed.
+
+### Option B – Open the file directly
 
 1. **Download or clone** this repository:
    ```bash
@@ -60,7 +68,7 @@ A lightweight, browser-based parcel tracking web application that monitors your 
 2. Open `index.html` in **Google Chrome** (or any modern browser).
 3. Start tracking!
 
-### Option B – Serve locally (recommended for full PWA features)
+### Option C – Serve locally (recommended for full PWA features)
 
 ```bash
 # If you have Node.js installed:
@@ -72,7 +80,7 @@ npx serve . -p 3000
 
 > **Why serve locally?** Service Workers and some notification features require an `http://` or `https://` origin — they will not work over `file://`.
 
-### Option C – Deploy to the web
+### Option D – Deploy to the web
 
 Upload the entire folder to any static hosting provider (GitHub Pages, Netlify, Vercel, Cloudflare Pages). See [Deploying to the Web](#deploying-to-the-web) for step-by-step guides.
 
@@ -240,7 +248,33 @@ Tracking-Api-Key: YOUR_API_KEY
 
 ---
 
-## Performance & Optimisation
+## Console Logging & Debugging
+
+The app includes comprehensive console logging across all modules to help with debugging and development. Open your browser's Developer Tools (**F12** or **Ctrl+Shift+I**) and check the **Console** tab to see real-time activity.
+
+### Log Prefixes
+
+Each module uses a unique prefix so you can quickly identify the source:
+
+| Prefix | Module | What it logs |
+|---|---|---|
+| `[ParcelTracker]` | `app.js` | App lifecycle, settings, parcel add/remove, polling |
+| `[Tracker]` | `tracker.js` | API calls, demo mode fallback, request/response info |
+| `[Notifications]` | `notifications.js` | Permission requests, notification display |
+| `[Email]` | `email.js` | Email sending, recipient status |
+| `[ServiceWorker]` | `sw.js` | Install, activate, cache and fetch events |
+
+### Log Levels
+
+- **`console.log`** — Normal operations (parcel added, polling started, data fetched)
+- **`console.warn`** — Non-critical issues (storage full, network errors, permission denied)
+- **`console.error`** — Failures (API errors, invalid input)
+
+### Filtering Logs
+
+In Chrome DevTools you can filter console output by typing a prefix like `[ParcelTracker]` in the filter box to see only app-level logs, or use the log level buttons to show/hide warnings and errors.
+
+---
 
 The app is built with performance in mind:
 
@@ -298,6 +332,8 @@ parceldeliverytracker/
 2. Go to **Settings → Pages**.
 3. Under **Source**, select the branch (e.g. `main`) and folder (`/ (root)`).
 4. Click **Save**. Your app will be live at `https://<username>.github.io/parceldeliverytracker/`.
+
+> ✅ This project is already deployed at **[https://shiba44-shiba.github.io/parceldeliverytracker/](https://shiba44-shiba.github.io/parceldeliverytracker/)**
 
 ### Netlify
 

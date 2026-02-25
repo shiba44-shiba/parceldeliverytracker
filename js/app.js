@@ -15,6 +15,21 @@
 const App = (() => {
   'use strict';
 
+  // ---- Console Logger ----
+  const LOG_PREFIX = '[ParcelTracker]';
+
+  function _log(msg, ...args) {
+    console.log(`${LOG_PREFIX} ${msg}`, ...args);
+  }
+
+  function _warn(msg, ...args) {
+    console.warn(`${LOG_PREFIX} ${msg}`, ...args);
+  }
+
+  function _error(msg, ...args) {
+    console.error(`${LOG_PREFIX} ${msg}`, ...args);
+  }
+
   // ---- State ----
   const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes
   const STORAGE_KEY = 'parcelTracker_parcels';
@@ -29,6 +44,7 @@ const App = (() => {
   // ---- Init ----
 
   function init() {
+    _log('Initialising Parcel Delivery Tracker…');
     _cacheDom();
     _loadSettings();
     _loadParcels();
@@ -38,13 +54,20 @@ const App = (() => {
 
     // Request notification permission early (won't show prompt until user interacts)
     if (Notifications.isSupported() && Notification.permission === 'default') {
-      // We'll request on first add instead to avoid the auto-prompt policy
+      _log('Notification permission not yet requested – will prompt on first parcel add');
     }
 
     // Register minimal service worker for PWA / offline caching
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker
+        .register('sw.js')
+        .then(() => _log('Service Worker registered successfully'))
+        .catch((err) => _warn('Service Worker registration failed:', err.message));
+    } else {
+      _warn('Service Workers not supported in this browser');
     }
+
+    _log('App ready – tracking %d parcel(s)', _parcels.length);
   }
 
   function _cacheDom() {
@@ -72,6 +95,7 @@ const App = (() => {
       const raw = localStorage.getItem(SETTINGS_KEY);
       if (raw) {
         const s = JSON.parse(raw);
+        _log('Loading saved settings');
         if (s.email) {
           Email.setRecipientEmail(s.email);
           els.emailInput.value = s.email;
@@ -87,10 +111,13 @@ const App = (() => {
         if (s.apiKey) {
           Tracker.setApiKey(s.apiKey);
           els.apiKeyInput.value = s.apiKey;
+          _log('API key loaded from settings');
         }
+      } else {
+        _log('No saved settings found – using defaults');
       }
-    } catch (_) {
-      // corrupt data – ignore
+    } catch (err) {
+      _warn('Failed to load settings (corrupt data):', err.message);
     }
   }
 
@@ -103,8 +130,9 @@ const App = (() => {
     };
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    } catch (_) {
-      // storage full – ignore
+      _log('Settings saved');
+    } catch (err) {
+      _warn('Failed to save settings (storage full?):', err.message);
     }
   }
 
@@ -113,8 +141,14 @@ const App = (() => {
   function _loadParcels() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) _parcels = JSON.parse(raw);
-    } catch (_) {
+      if (raw) {
+        _parcels = JSON.parse(raw);
+        _log('Loaded %d parcel(s) from storage', _parcels.length);
+      } else {
+        _log('No saved parcels found');
+      }
+    } catch (err) {
+      _warn('Failed to load parcels (corrupt data):', err.message);
       _parcels = [];
     }
   }
@@ -122,8 +156,8 @@ const App = (() => {
   function _saveParcels() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(_parcels));
-    } catch (_) {
-      // ignore
+    } catch (err) {
+      _warn('Failed to save parcels (storage full?):', err.message);
     }
   }
 
@@ -134,21 +168,25 @@ const App = (() => {
       const email = els.emailInput.value.trim();
       if (!email || !_isValidEmail(email)) {
         _showStatus(els.settingsStatus, 'Please enter a valid email address.', 'error');
+        _warn('Invalid email address entered');
         return;
       }
       Email.setRecipientEmail(email);
       _saveSettings();
+      _log('Email address saved: %s', email);
       _showStatus(els.settingsStatus, 'Email saved ✓', 'success');
     });
 
     els.saveApiKeyBtn.addEventListener('click', () => {
       Tracker.setApiKey(els.apiKeyInput.value);
       _saveSettings();
+      _log('API key updated');
       _showStatus(els.settingsStatus, 'API key saved ✓', 'success');
     });
 
     els.chromeNotifToggle.addEventListener('change', () => {
       Notifications.setEnabled(els.chromeNotifToggle.checked);
+      _log('Chrome notifications %s', els.chromeNotifToggle.checked ? 'enabled' : 'disabled');
       if (els.chromeNotifToggle.checked) {
         Notifications.requestPermission();
       }
@@ -157,6 +195,7 @@ const App = (() => {
 
     els.emailNotifToggle.addEventListener('change', () => {
       Email.setEnabled(els.emailNotifToggle.checked);
+      _log('Email notifications %s', els.emailNotifToggle.checked ? 'enabled' : 'disabled');
       _saveSettings();
     });
 
@@ -179,11 +218,13 @@ const App = (() => {
 
     if (!num) {
       _showStatus(els.addStatus, 'Please enter a tracking number.', 'error');
+      _warn('Empty tracking number submitted');
       return;
     }
 
     if (_parcels.some((p) => p.trackingNumber === num)) {
       _showStatus(els.addStatus, 'This tracking number is already being tracked.', 'info');
+      _log('Duplicate tracking number: %s', num);
       return;
     }
 
@@ -191,6 +232,7 @@ const App = (() => {
     Notifications.requestPermission();
 
     _showStatus(els.addStatus, 'Adding…', 'info');
+    _log('Adding parcel: %s (carrier: %s)', num, carrier);
     els.addTrackingBtn.disabled = true;
 
     try {
@@ -199,8 +241,10 @@ const App = (() => {
       _saveParcels();
       _render();
       els.trackingInput.value = '';
+      _log('Parcel added successfully: %s [%s]', result.trackingNumber, result.statusText);
       _showStatus(els.addStatus, 'Parcel added ✓', 'success');
     } catch (err) {
+      _error('Failed to add parcel %s:', num, err.message);
       _showStatus(els.addStatus, `Error: ${err.message}`, 'error');
     } finally {
       els.addTrackingBtn.disabled = false;
@@ -212,6 +256,7 @@ const App = (() => {
   function _startPolling() {
     _stopPolling();
     _pollTimer = setInterval(_pollAll, POLL_INTERVAL);
+    _log('Polling started (interval: %ds)', POLL_INTERVAL / 1000);
   }
 
   function _stopPolling() {
@@ -224,11 +269,16 @@ const App = (() => {
   async function _pollAll() {
     if (_parcels.length === 0) return;
 
+    _log('Polling %d parcel(s) for updates…', _parcels.length);
+
     // Process sequentially to avoid API rate limits
     for (let i = 0; i < _parcels.length; i++) {
       const p = _parcels[i];
       // Skip delivered parcels
-      if (p.status === 'delivered') continue;
+      if (p.status === 'delivered') {
+        _log('Skipping delivered parcel: %s', p.trackingNumber);
+        continue;
+      }
 
       try {
         const updated = await Tracker.getTracking(p.trackingNumber, p.carrier);
@@ -246,15 +296,17 @@ const App = (() => {
             ? updated.updates[0].message
             : '';
 
+          _log('Update detected for %s: %s → %s', updated.trackingNumber, oldStatus, updated.status);
           Notifications.notify(updated.trackingNumber, updated.statusText, latestMsg);
           Email.sendUpdate(updated.trackingNumber, updated.statusText, latestMsg);
         }
-      } catch (_) {
-        // Network error – skip this parcel, try again next cycle
+      } catch (err) {
+        _warn('Failed to poll parcel %s: %s', p.trackingNumber, err.message);
       }
     }
 
     _saveParcels();
+    _log('Polling complete');
     requestAnimationFrame(() => _render());
   }
 
@@ -332,17 +384,21 @@ const App = (() => {
     const p = _parcels[idx];
     if (!p) return;
 
+    _log('Refreshing parcel: %s', p.trackingNumber);
     try {
       const updated = await Tracker.getTracking(p.trackingNumber, p.carrier);
       _parcels[idx] = updated;
       _saveParcels();
       _render();
-    } catch (_) {
-      // ignore
+      _log('Parcel refreshed: %s [%s]', updated.trackingNumber, updated.statusText);
+    } catch (err) {
+      _warn('Failed to refresh parcel %s: %s', p.trackingNumber, err.message);
     }
   }
 
   function _removeSingle(idx) {
+    const p = _parcels[idx];
+    _log('Removing parcel: %s', p ? p.trackingNumber : idx);
     _parcels.splice(idx, 1);
     _saveParcels();
     _render();
