@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Track your parcels with real-time Chrome notifications and email alerts">
+  <title>Parcel Delivery Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1>📦 Parcel Delivery Tracker</h1>
+      <p class="subtitle">Track your parcels &bull; Get notified instantly</p>
+    </header>
+
+    <!-- Settings Panel -->
+    <section class="card settings-card" id="settingsCard">
+      <h2>⚙️ Notification Settings</h2>
+      <div class="form-group">
+        <label for="emailInput">Email for notifications:</label>
+        <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email">
+        <button id="saveEmailBtn" class="btn btn-secondary">Save Email</button>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="chromeNotifToggle" checked>
+          Enable Chrome notifications
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="emailNotifToggle" checked>
+          Enable email notifications
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="apiKeyInput">Tracking API Key (<a href="https://www.trackingmore.com/" target="_blank" rel="noopener">TrackingMore</a>):</label>
+        <input type="text" id="apiKeyInput" placeholder="Enter your API key">
+        <button id="saveApiKeyBtn" class="btn btn-secondary">Save Key</button>
+      </div>
+      <div id="settingsStatus" class="status-msg" aria-live="polite"></div>
+    </section>
+
+    <!-- Add Tracking Number -->
+    <section class="card">
+      <h2>➕ Add Tracking Number</h2>
+      <div class="form-group form-inline">
+        <input type="text" id="trackingInput" placeholder="Enter tracking number" autocomplete="off">
+        <select id="carrierSelect">
+          <option value="auto">Auto-detect carrier</option>
+          <option value="usps">USPS</option>
+          <option value="ups">UPS</option>
+          <option value="fedex">FedEx</option>
+          <option value="dhl">DHL</option>
+          <option value="royal-mail">Royal Mail</option>
+          <option value="australia-post">Australia Post</option>
+          <option value="canada-post">Canada Post</option>
+          <option value="yanwen">Yanwen</option>
+          <option value="china-post">China Post</option>
+          <option value="china-ems">China EMS</option>
+        </select>
+        <button id="addTrackingBtn" class="btn btn-primary">Track Parcel</button>
+      </div>
+      <div id="addStatus" class="status-msg" aria-live="polite"></div>
+    </section>
+
+    <!-- Tracked Parcels List -->
+    <section class="card">
+      <div class="section-header">
+        <h2>📋 Tracked Parcels</h2>
+        <button id="refreshAllBtn" class="btn btn-secondary btn-sm" title="Refresh all parcels now">🔄 Refresh All</button>
+      </div>
+      <p class="auto-refresh-note">Auto-refreshes every 5 minutes</p>
+      <div id="parcelList" class="parcel-list">
+        <p class="empty-state">No parcels tracked yet. Add a tracking number above to get started.</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Parcel Delivery Tracker &mdash; Open Source &bull; <a href="https://github.com/shiba44-shiba/parceldeliverytracker" target="_blank" rel="noopener">GitHub</a></p>
+    </footer>
+  </div>
+
+  <!-- Scripts loaded with defer for performance -->
+  <script src="js/tracker.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
