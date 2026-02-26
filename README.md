@@ -41,6 +41,27 @@ Then open:
 http://127.0.0.1:8080
 ```
 
+## Push To GitHub
+
+```bash
+git add .
+git commit -m "Fix courier handling and add web UI"
+git push origin main
+```
+
+## Deploy Live Website (Render)
+
+1. Push your repo to GitHub.
+2. Go to `https://render.com` and create a **Web Service** from this repo.
+3. Use:
+	- **Build Command:** *(leave empty)*
+	- **Start Command:** `python3 web_ui.py`
+4. Add environment variable:
+	- `AFTERSHIP_API_KEY=your_key`
+5. Deploy. Render will provide a public URL.
+
+The app now supports cloud hosting by using `HOST`/`PORT` environment variables automatically.
+
 Optional env var (so you do not type API key every run):
 
 ```bash
